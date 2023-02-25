@@ -48,7 +48,7 @@ npm install -g nodemon
 nodemon --exec go run src/main.go --signal SIGTERM
 ```
 
-![running](https://user-images.githubusercontent.com/112603532/221371414-1d1114e8-2bbb-43c8-8544-b4db7786316a.png)
+![running](https://user-images.githubusercontent.com/112603532/221372094-f0c58450-b82b-425b-a49b-e9aab5f121a9.png)
 
 Swagger API Documentation URL:
 ```url
