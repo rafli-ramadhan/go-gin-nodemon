@@ -56,9 +56,9 @@ func RouterSetup() *gin.Engine {
 	userController := userController.NewController(userService)
 
 	// endpoint
-	v1 := router.Group("/v1")
-	users := v1.Group("/users")
-	users.GET("register", userController.Register)
+	v1 := router.Group("v1")
+	users := v1.Group("users")
+	users.POST("register", userController.Register)
 
 	return router
 }

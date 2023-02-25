@@ -40,7 +40,7 @@ go mod tidy
 npm install -g nodemon
 ```
 
-## Running the server
+## Running the Server
 
 ### Go run + Nodemon
 
@@ -50,7 +50,7 @@ nodemon --exec go run src/main.go --signal SIGTERM
 
 ![running](https://user-images.githubusercontent.com/112603532/221371414-1d1114e8-2bbb-43c8-8544-b4db7786316a.png)
 
-Access Swagger API Documentation using this URL:
+Swagger API Documentation URL:
 ```url
 http://localhost:5000/swagger/index.html#/
 ```

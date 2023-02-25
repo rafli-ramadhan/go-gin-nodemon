@@ -28,13 +28,13 @@ func NewController(
 // Register godoc
 // @Summary Register User
 // @Description Register User
-// @Tags Register
-// @Param Payload body register.EmailRequest true "Payload"
+// @Tags Users
+// @Param Payload body user.RegisterRequestSchema true "Payload"
 // @Success 201 {object} string "Created"
-// @Failure 400 {object} string "Bad Request"
-// @Failure 409 {object} string "Resource Conflict"
-// @Failure 500 {object} string "Internal Server Error"
-// @Router /v1/auth/register [post]
+// @Failure 400 {string} string "Bad Request"
+// @Failure 409 {string} string "Resource Conflict"
+// @Failure 500 {string} string "Internal Server Error"
+// @Router /v1/users/register [post]
 func (ctrl *Controller) Register(ctx *gin.Context) {
 	req := pkg.RegisterRequestSchema{}
 	if err := rest.BindJSON(ctx, &req); err != nil {
