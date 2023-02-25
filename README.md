@@ -30,10 +30,6 @@ go install github.com/swaggo/swag/cmd/swag@v1.6.7
 swag init -g src/main.go
 ```
 
-This command will create a new folder `docs`. Reference : [swaggo](https://github.com/swaggo/swag).
-
-Then, run this command again:
-
 ```bash
 go mod tidy
 ```
@@ -63,13 +59,11 @@ http://localhost:5000/swagger/index.html#/
 
 ### Docker
 
-- Open docker dekstop, then run this command :
-
 ```bash
 docker-compose up --build
 ```
 
-## Tree
+## Repository Structure
 
 ```bash
 .
