@@ -55,7 +55,7 @@ Swagger API Documentation URL:
 http://localhost:5000/swagger/index.html#/
 ```
 
-![swagger](https://user-images.githubusercontent.com/112603532/221371404-887e0ce3-5c64-4cc8-9ead-11fbba7efbb0.png)
+![swagger](https://user-images.githubusercontent.com/112603532/221371951-adc780d5-fc53-4b60-ac8c-7cadc412e484.png)
 
 ### Docker
 
