@@ -66,16 +66,11 @@ docker-compose up --build
 ```
 
 ## Tree
-This is an example of general folder tree on Fotoyu API service repository.
+
 ```bash
 .
 ├── .github
 │   └── PULL_REQUEST_TEMPLATE.md
-├── docker
-│   ├── Dockerfile.dev
-│   ├── Dockerfile.loc
-│   └── Dockerfile.prd
-│   ├── Dockerfile.stg
 ├── src
 │   ├── connection
 │   │   └── connection.go
@@ -100,6 +95,5 @@ This is an example of general folder tree on Fotoyu API service repository.
 ├── .env.example
 ├── .gitignore
 ├── README.md
-├── docker-compose.yml
 └── go.mod
 ```
