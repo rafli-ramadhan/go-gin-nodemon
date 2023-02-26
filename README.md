@@ -48,14 +48,14 @@ npm install -g nodemon
 nodemon --exec go run src/main.go --signal SIGTERM
 ```
 
-![running](https://user-images.githubusercontent.com/112603532/221372094-f0c58450-b82b-425b-a49b-e9aab5f121a9.png)
+![running](https://user-images.githubusercontent.com/112603532/221396507-ae69d6d8-10c1-4f42-8757-1f119889e24d.png)
 
 Swagger API Documentation URL:
 ```url
 http://localhost:5000/swagger/index.html#/
 ```
 
-![swagger](https://user-images.githubusercontent.com/112603532/221371951-adc780d5-fc53-4b60-ac8c-7cadc412e484.png)
+![swagger](https://user-images.githubusercontent.com/112603532/221396511-1b79e78d-ca84-4a30-b76d-124521f8e0b5.png)
 
 ### Docker
 
