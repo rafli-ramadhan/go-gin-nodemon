@@ -55,34 +55,34 @@ func NewRepository(
 }
 
 type Repositorier interface {
-	Take(userID int) (user pkg.GetResponseSchema, err error)
-	Find(userIDs []int) (users []pkg.GetResponseSchema, err error)
-	Exist(email string) (exist bool, err error)
+	Take(userID int) (user User, err error)
+	Find(userIDs []int) (users []User, err error)
+	TakeByEmail(email string) (user User, err error)
 	Create(request pkg.RegisterRequestSchema) (err error)
 	Update(userID int, request pkg.UpdateRequestSchema) (err error)
 	Delete(userID int) (err error)
 }
 
-func (repo *Repository) Take(userID int) (user pkg.GetResponseSchema, err error) {
-	query := repo.dbMaster.Model(&user).
+func (repo *Repository) Take(userID int) (user User, err error) {
+	query := repo.dbMaster.Model(&User{}).
 		Select("id", "username", "nickname", "email", "used_storage", "status").
 		Take(&user, userID)
 	err = query.Error
 	return
 }
 
-func (repo *Repository) Find(userIDs []int) (users []pkg.GetResponseSchema, err error) {
-	query := repo.dbMaster.Model(&users).
+func (repo *Repository) Find(userIDs []int) (users []User, err error) {
+	query := repo.dbMaster.Model(&User{}).
 		Select("id", "username", "nickname", "email", "used_storage", "status").
 		Find(&users, userIDs)
 	err = query.Error
 	return
 }
 
-func (repo *Repository) Exist(email string) (exist bool, err error) {
-	user := &User{}
-	query := repo.dbMaster.Model(user).
-		Where("email IN ?", user).
+func (repo *Repository) TakeByEmail(email string) (user User, err error) {
+	query := repo.dbMaster.Model(&User{}).
+		Select("email").
+		Where("email", user).
 		Take(&user)
 	err = query.Error
 	return

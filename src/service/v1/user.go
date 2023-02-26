@@ -21,25 +21,25 @@ func NewService(
 }
 
 type Servicer interface {
-	Take(userID int) (users pkg.GetResponseSchema, err error)
-	Find(userIDs []int) (users []pkg.GetResponseSchema, err error)
+	Take(userID int) (users models.User, err error)
+	Find(userIDs []int) (users []models.User, err error)
 	CheckEmailExist(email string) (exist bool, err error)
 	Create(request pkg.RegisterRequestSchema) (err error)
 	Update(userID int, request pkg.UpdateRequestSchema) (err error)
 	Delete(userID int) (err error)
 }
 
-func (svc *Service) Take(userID int) (users pkg.GetResponseSchema, err error) {
+func (svc *Service) Take(userID int) (users models.User, err error) {
 	return svc.model.Take(userID)
 }
 
-func (svc *Service) Find(userIDs []int) (users []pkg.GetResponseSchema, err error) {
+func (svc *Service) Find(userIDs []int) (users []models.User, err error) {
 	return svc.model.Find(userIDs)
 }
 
 func (svc *Service) CheckEmailExist(email string) (exist bool, err error) {
 	exist = false
-	_, err = svc.model.Exist(email)
+	_, err = svc.model.TakeByEmail(email)
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
 			exist = true
@@ -54,7 +54,6 @@ func (svc *Service) CheckEmailExist(email string) (exist bool, err error) {
 func (svc *Service) Create(request pkg.RegisterRequestSchema) (err error) {
 	exist, err := svc.CheckEmailExist(request.Email)
 	if err != nil {
-		err = errors.Wrap(err, "create")
 		return
 	}
 	

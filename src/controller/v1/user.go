@@ -13,6 +13,7 @@ import (
 	"github.com/forkyid/go-utils/v1/rest"
 	"github.com/forkyid/go-utils/v1/validation"
 	"github.com/gin-gonic/gin"
+	"github.com/jinzhu/copier"
 	"github.com/pkg/errors"
 )
 
@@ -69,7 +70,9 @@ func (ctrl *Controller) Get(ctx *gin.Context) {
 		}
 
 		for i := range usersData {
-			result = append(result, usersData[i])
+			response := pkg.GetResponseSchema{}
+			err = errors.Wrap(copier.Copy(&response, &usersData[i]), "copy user data to response")
+			result = append(result, response)
 		}
 		rest.ResponseData(ctx, http.StatusOK, result)
 		return
