@@ -8,6 +8,8 @@ import (
 	"go-rest-api/src/constant"
 	pkg "go-rest-api/src/pkg/http"
 	service "go-rest-api/src/service/v1"
+	"github.com/forkyid/go-utils/v1/aes"
+	"github.com/forkyid/go-utils/v1/jwt"
 	"github.com/forkyid/go-utils/v1/rest"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
@@ -22,6 +24,50 @@ func NewController(
 ) *Controller {
 	return &Controller{
 		svc: svc,
+	}
+}
+
+// Get user godoc
+// @Summary Get User
+// @Description Get id, username, fullname, and email
+// @Tags Users
+// @Produce application/json
+// @Param Authorization header string true "Bearer Token"
+// @Param user_ids query string false "user_ids separated by comma"
+// @Success 200 {object} user.GetResponseSchema
+// @Failure 400 {string} string "Bad Request"
+// @Failure 401 {string} string "Unauthorized"
+// @Failure 500 {string} string "Internal Server Error"
+// @Router /v1/users [get]
+func (ctrl *Controller) Get(ctx *gin.Context) {
+	userID, err := jwt.ExtractClient(ctx.GetHeader("Authorization"))
+	if err != nil || aes.Decrypt(userID.ID) < 0 {
+		rest.ResponseMessage(ctx, http.StatusUnauthorized)
+		return
+	}
+
+	users := ctx.Query("user_ids")
+	if users != "" {
+		result := []pkg.GetResponseSchema{}
+		userIDs, err := aes.DecryptBulk(strings.Split(users, ","))
+		if err != nil {
+			rest.ResponseError(ctx, http.StatusBadRequest, map[string]string{
+				"user_ids": constant.ErrInvalidID.Error()})
+			return
+		}
+
+		usersData, err := ctrl.svc.Find(userIDs)
+		if err != nil {
+			rest.ResponseMessage(ctx, http.StatusInternalServerError)
+			log.Println("get user by id:", err)
+			return
+		}
+
+		for i := range usersData {
+			result = append(result, usersData[i])
+		}
+		rest.ResponseData(ctx, http.StatusOK, result)
+		return
 	}
 }
 
@@ -48,11 +94,9 @@ func (ctrl *Controller) Register(ctx *gin.Context) {
 	if errors.Is(err, constant.ErrUserExist) {
 		rest.ResponseMessage(ctx, http.StatusConflict, errors.Cause(err).Error())
 	} else if err != nil {
-		log.Println("[ERROR] register by email:", err.Error())
+		log.Println("register by email:", err.Error())
 		rest.ResponseMessage(ctx, http.StatusInternalServerError)
 	} else {
 		rest.ResponseMessage(ctx, http.StatusCreated)
 	}
-
-	rest.ResponseMessage(ctx, http.StatusOK)
 }

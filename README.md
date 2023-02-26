@@ -87,8 +87,7 @@ docker-compose up --build
 │   │   └── routes.go
 │   ├── service
 │   │   └── v1
-│   │       ├── user
-│   │           │── user.go
+│   │       ├── user.go
 │   └── main.go
 ├── .env.example
 ├── .gitignore

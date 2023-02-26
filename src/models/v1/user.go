@@ -43,26 +43,35 @@ type DB struct {
 }
 
 type Repository struct {
-	master *gorm.DB
+	dbMaster *gorm.DB
 }
 
 func NewRepository(
 	db connection.DB,
 ) *Repository {
 	return &Repository{
-		master: db.Master,
+		dbMaster: db.Master,
 	}
 }
 
 type Repositorier interface {
+	Find(userIDs []int) (users []pkg.GetResponseSchema, err error)
 	Exist(email string) (exist bool, err error)
 	Create(request pkg.RegisterRequestSchema) (err error)
 	Delete(id string) (err error)
 }
 
+func (repo *Repository) Find(userIDs []int) (users []pkg.GetResponseSchema, err error) {
+	query := repo.dbMaster.Model(&users).
+		Select("id", "username", "nickname", "email", "used_storage", "status").
+		Find(&users, userIDs)
+	err = query.Error
+	return
+}
+
 func (repo *Repository) Exist(email string) (exist bool, err error) {
 	user := &User{}
-	query := repo.master.Model(user).
+	query := repo.dbMaster.Model(user).
 		Where("email IN ?", user).
 		Take(&user)
 	err = query.Error
@@ -71,7 +80,7 @@ func (repo *Repository) Exist(email string) (exist bool, err error) {
 
 func (repo *Repository) Create(request pkg.RegisterRequestSchema) (err error) {
 	user := &User{}
-	query := repo.master.Model(user).Begin().
+	query := repo.dbMaster.Model(user).Begin().
 		Clauses(clause.OnConflict{
 			Columns:   []clause.Column{{Name: "account_id"}, {Name: "account_id"}},
 			DoUpdates: clause.Assignments(map[string]interface{}{"deleted_at": nil})}).
@@ -88,7 +97,7 @@ func (repo *Repository) Create(request pkg.RegisterRequestSchema) (err error) {
 
 func (repo *Repository) Delete(id string) (err error) {
 	user := &User{}
-	query := repo.master.Model(user).Begin().
+	query := repo.dbMaster.Model(user).Begin().
 		Where("id IN ?", id).
 		Delete(user)
 	err = query.Error

@@ -8,25 +8,30 @@ import (
 )
 
 type Service struct {
-	repo models.Repositorier
+	model models.Repositorier
 }
 
 func NewService(
-	repository models.Repositorier,
+	repositorier models.Repositorier,
 ) *Service {
 	return &Service{
-		repo: repository,
+		model: repositorier,
 	}
 }
 
 type Servicer interface {
+	Find(userIDs []int) (users []pkg.GetResponseSchema, err error)
 	CheckEmailExist(email string) (exist bool, err error)
 	Create(request pkg.RegisterRequestSchema) (err error)
 }
 
+func (svc *Service) Find(userIDs []int) (users []pkg.GetResponseSchema, err error) {
+	return svc.model.Find(userIDs)
+}
+
 func (svc *Service) CheckEmailExist(email string) (exist bool, err error) {
 	exist = false
-	_, err = svc.repo.Exist(email)
+	_, err = svc.model.Exist(email)
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
 			exist = true
@@ -46,7 +51,7 @@ func (svc *Service) Create(request pkg.RegisterRequestSchema) (err error) {
 	}
 	
 	if !exist {
-		err = svc.repo.Create(request)
+		err = svc.model.Create(request)
 		if err != nil {
 			err = errors.Wrap(err, "create")
 			return
@@ -69,7 +74,7 @@ func (svc *Service) Delete(ctx *gin.Context, request DeleteRequest) (err error) 
 	}
 
 	userID := aes.Decrypt(request.userID)
-	userData, err := svc.repo.TakeIDByHostID(userID, aes.Decrypt(host.HostID))
+	userData, err := svc.model.TakeIDByHostID(userID, aes.Decrypt(host.HostID))
 	if err != nil {
 		err = errors.Wrap(err, "db: take admin by user id and host id")
 		return
@@ -79,7 +84,7 @@ func (svc *Service) Delete(ctx *gin.Context, request DeleteRequest) (err error) 
 		userID: userID,
 		HostID:    aes.Decrypt(host.HostID),
 	}
-	err = svc.repo.Delete(user)
+	err = svc.model.Delete(user)
 	if err != nil {
 		err = errors.Wrap(err, "db: delete user")
 		return

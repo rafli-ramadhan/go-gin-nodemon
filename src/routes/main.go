@@ -58,6 +58,7 @@ func RouterSetup() *gin.Engine {
 	// endpoint
 	v1 := router.Group("v1")
 	users := v1.Group("users")
+	users.GET("", userController.Get)
 	users.POST("register", userController.Register)
 
 	return router
