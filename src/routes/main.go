@@ -60,6 +60,8 @@ func RouterSetup() *gin.Engine {
 	users := v1.Group("users")
 	users.GET("", userController.Get)
 	users.POST("register", userController.Register)
+	users.PATCH("", userController.Update)
+	users.DELETE("", userController.Delete)
 
 	return router
 }

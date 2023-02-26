@@ -22,6 +22,7 @@ var (
 	ErrInvalidID            = errors.New("invalid id")
 	ErrInvalidFormat        = errors.New("invalid format")
 	ErrUserExist            = errors.New("user already exist")
+	ErrUserNotRegistered    = errors.New("user not registered")
 
 	// db connection
 	_ = godotenv.Load()

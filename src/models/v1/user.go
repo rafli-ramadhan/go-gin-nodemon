@@ -55,10 +55,20 @@ func NewRepository(
 }
 
 type Repositorier interface {
+	Take(userID int) (user pkg.GetResponseSchema, err error)
 	Find(userIDs []int) (users []pkg.GetResponseSchema, err error)
 	Exist(email string) (exist bool, err error)
 	Create(request pkg.RegisterRequestSchema) (err error)
-	Delete(id string) (err error)
+	Update(userID int, request pkg.UpdateRequestSchema) (err error)
+	Delete(userID int) (err error)
+}
+
+func (repo *Repository) Take(userID int) (user pkg.GetResponseSchema, err error) {
+	query := repo.dbMaster.Model(&user).
+		Select("id", "username", "nickname", "email", "used_storage", "status").
+		Take(&user, userID)
+	err = query.Error
+	return
 }
 
 func (repo *Repository) Find(userIDs []int) (users []pkg.GetResponseSchema, err error) {
@@ -95,10 +105,26 @@ func (repo *Repository) Create(request pkg.RegisterRequestSchema) (err error) {
 	return
 }
 
-func (repo *Repository) Delete(id string) (err error) {
+func (repo *Repository) Update(userID int, request pkg.UpdateRequestSchema) (err error) {
+	user := &User{}
+	query := repo.dbMaster.Model(&user).Begin().
+		Where("id IN ?", userID).
+		Updates(request)
+	err = query.Error
+	if err != nil {
+		query.Rollback()
+		return
+	}
+
+	err = query.Commit().Error
+	return
+}
+
+
+func (repo *Repository) Delete(userID int) (err error) {
 	user := &User{}
 	query := repo.dbMaster.Model(user).Begin().
-		Where("id IN ?", id).
+		Where("id IN ?", userID).
 		Delete(user)
 	err = query.Error
 	if err != nil {

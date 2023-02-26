@@ -1,6 +1,7 @@
 package user
 
 import (
+	"go-rest-api/src/constant"
 	models "go-rest-api/src/models/v1"
 	pkg "go-rest-api/src/pkg/http"
 	"github.com/pkg/errors"
@@ -20,9 +21,16 @@ func NewService(
 }
 
 type Servicer interface {
+	Take(userID int) (users pkg.GetResponseSchema, err error)
 	Find(userIDs []int) (users []pkg.GetResponseSchema, err error)
 	CheckEmailExist(email string) (exist bool, err error)
 	Create(request pkg.RegisterRequestSchema) (err error)
+	Update(userID int, request pkg.UpdateRequestSchema) (err error)
+	Delete(userID int) (err error)
+}
+
+func (svc *Service) Take(userID int) (users pkg.GetResponseSchema, err error) {
+	return svc.model.Take(userID)
 }
 
 func (svc *Service) Find(userIDs []int) (users []pkg.GetResponseSchema, err error) {
@@ -60,41 +68,38 @@ func (svc *Service) Create(request pkg.RegisterRequestSchema) (err error) {
 	return
 }
 
-/*
-func (svc *Service) Delete(ctx *gin.Context, request DeleteRequest) (err error) {
-	host, err := svc.host.TakeID(request.MemberID)
-	if err != nil {
-		err = errors.Wrap(err, "take host")
+func (svc *Service) Update(userID int, request pkg.UpdateRequestSchema) (err error) {
+	_, err = svc.Take(userID)
+	if err == gorm.ErrRecordNotFound {
+		err = constant.ErrUserNotRegistered
 		return
-	}
-
-	if request.userID == host.userID {
-		err = constant.ErrInvalidID
+	} else if err != nil {
+		err = errors.Wrap(err, "user is not exist")
 		return
-	}
-
-	userID := aes.Decrypt(request.userID)
-	userData, err := svc.model.TakeIDByHostID(userID, aes.Decrypt(host.HostID))
-	if err != nil {
-		err = errors.Wrap(err, "db: take admin by user id and host id")
-		return
-	}
-
-	user := dbuser.user{
-		userID: userID,
-		HostID:    aes.Decrypt(host.HostID),
-	}
-	err = svc.model.Delete(user)
-	if err != nil {
-		err = errors.Wrap(err, "db: delete user")
-		return
-	}
-
-	users, err := svc.user.GetuserByIDs(ctx, []int{userID})
-	if err != nil {
-		err = errors.Wrap(err, "get user by ids")
-		return
+	} else if err == nil {
+		err = svc.model.Update(userID, request)
+		if err != nil {
+			err = errors.Wrap(err, "delete user")
+			return
+		}
 	}
 	return
 }
-*/
+
+func (svc *Service) Delete(userID int) (err error) {
+	_, err = svc.Take(userID)
+	if err == gorm.ErrRecordNotFound {
+		err = constant.ErrUserNotRegistered
+		return
+	} else if err != nil {
+		err = errors.Wrap(err, "user is not exist")
+		return
+	} else if err == nil {
+		err = svc.model.Delete(userID)
+		if err != nil {
+			err = errors.Wrap(err, "delete user")
+			return
+		}
+	}
+	return
+}
