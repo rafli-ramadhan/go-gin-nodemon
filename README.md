@@ -1,4 +1,4 @@
-# Golang + Gin + Gorm + Nodemon + PostgreSQL
+# Golang + Gin + Gorm + Nodemon + PostgreSQL + Swagger
 
 Requirement :
 - Go 1.16
