@@ -18,6 +18,8 @@ const (
 )
 
 var (
+	SampleSecretKey = []byte("SecretYouShouldHide")
+
 	// error	
 	ErrInvalidID            = errors.New("invalid id")
 	ErrInvalidFormat        = errors.New("invalid format")

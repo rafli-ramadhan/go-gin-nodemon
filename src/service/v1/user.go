@@ -1,9 +1,10 @@
 package user
 
 import (
+	"log"
 	"go-rest-api/src/constant"
 	models "go-rest-api/src/models/v1"
-	pkg "go-rest-api/src/pkg/http"
+	"go-rest-api/src/http"
 	"github.com/pkg/errors"
 	"gorm.io/gorm"
 )
@@ -23,9 +24,10 @@ func NewService(
 type Servicer interface {
 	Take(userID int) (users models.User, err error)
 	Find(userIDs []int) (users []models.User, err error)
+	CheckUsernameExist(email string) (exist bool, err error)
 	CheckEmailExist(email string) (exist bool, err error)
-	Create(request pkg.RegisterRequestSchema) (err error)
-	Update(userID int, request pkg.UpdateRequestSchema) (err error)
+	Create(request http.RegisterUser) (err error)
+	Update(userID int, request http.UpdateUser) (err error)
 	Delete(userID int) (err error)
 }
 
@@ -39,23 +41,40 @@ func (svc *Service) Find(userIDs []int) (users []models.User, err error) {
 
 func (svc *Service) CheckEmailExist(email string) (exist bool, err error) {
 	exist = false
-	_, err = svc.model.TakeByEmail(email)
+	_, err = svc.model.TakeUserByEmail(email)
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			exist = false
+			err = nil
+			return
+		} else {
+			err = errors.Wrap(err, "check email exist")
+		}
+	}
+	exist = true
+	return
+}
+
+func (svc *Service) CheckUsernameExist(email string) (exist bool, err error) {
+	exist = false
+	_, err = svc.model.TakeUserByUsername(email)
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
 			exist = true
 			err = nil
 			return
 		}
-		err = errors.Wrap(err, "check email exist")
+		err = errors.Wrap(err, "check username exist")
 	}
 	return
 }
 
-func (svc *Service) Create(request pkg.RegisterRequestSchema) (err error) {
+func (svc *Service) Create(request http.RegisterUser) (err error) {
 	exist, err := svc.CheckEmailExist(request.Email)
 	if err != nil {
 		return
 	}
+	log.Print(exist)
 	
 	if !exist {
 		err = svc.model.Create(request)
@@ -67,7 +86,7 @@ func (svc *Service) Create(request pkg.RegisterRequestSchema) (err error) {
 	return
 }
 
-func (svc *Service) Update(userID int, request pkg.UpdateRequestSchema) (err error) {
+func (svc *Service) Update(userID int, request http.UpdateUser) (err error) {
 	_, err = svc.Take(userID)
 	if err == gorm.ErrRecordNotFound {
 		err = constant.ErrUserNotRegistered

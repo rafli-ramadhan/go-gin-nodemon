@@ -1,19 +1,25 @@
-package user
+package http
 
-type GetResponseSchema struct {
+type Auth struct {
+	Username string `valid:"Required; MaxSize(50)"`
+	Password string `valid:"Required; MaxSize(50)"`
+}
+
+type GetUser struct {
 	Username  string `json:"username" validate:"required"`
 	Email     string `json:"email" validate:"required"`
 	Password  string `json:"password" validate:"required"`
 }
 
-type RegisterRequestSchema struct {
+type RegisterUser struct {
 	Username  string `json:"username" validate:"required"`
 	Email     string `json:"email" validate:"required"`
+	Gender    string `json:"gender"`
 	Password  string `json:"password" validate:"required"`
 	DOBString string `json:"date_of_birth" validate:"required" example:"dd/mm/yyyy"`
 }
 
-type UpdateRequestSchema struct {
+type UpdateUser struct {
 	Username    string  `json:"username" validate:"required"`
 	Email       string  `json:"email" validate:"required"`
 	Password    string  `json:"password" validate:"required"`

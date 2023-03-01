@@ -6,7 +6,7 @@ import (
 	"net/http"
 
 	"go-rest-api/src/constant"
-	pkg "go-rest-api/src/pkg/http"
+	entity "go-rest-api/src/http"
 	service "go-rest-api/src/service/v1"
 	"github.com/forkyid/go-utils/v1/aes"
 	"github.com/forkyid/go-utils/v1/jwt"
@@ -36,7 +36,7 @@ func NewController(
 // @Produce application/json
 // @Param Authorization header string true "Bearer Token"
 // @Param user_ids query string false "user_ids separated by comma"
-// @Success 200 {object} user.GetResponseSchema
+// @Success 200 {object} user.GetUser
 // @Failure 400 {string} string "Bad Request"
 // @Failure 401 {string} string "Unauthorized"
 // @Failure 500 {string} string "Internal Server Error"
@@ -54,7 +54,7 @@ func (ctrl *Controller) Get(ctx *gin.Context) {
 
 	users := ctx.Query("user_ids")
 	if users != "" {
-		result := []pkg.GetResponseSchema{}
+		result := []entity.GetUser{}
 		userIDs, err := aes.DecryptBulk(strings.Split(users, ","))
 		if err != nil {
 			rest.ResponseError(ctx, http.StatusBadRequest, map[string]string{
@@ -70,7 +70,7 @@ func (ctrl *Controller) Get(ctx *gin.Context) {
 		}
 
 		for i := range usersData {
-			response := pkg.GetResponseSchema{}
+			response := entity.GetUser{}
 			err = errors.Wrap(copier.Copy(&response, &usersData[i]), "copy user data to response")
 			result = append(result, response)
 		}
@@ -83,14 +83,14 @@ func (ctrl *Controller) Get(ctx *gin.Context) {
 // @Summary Register User
 // @Description Register User
 // @Tags Users
-// @Param Payload body user.RegisterRequestSchema true "Payload"
+// @Param Payload body user.RegisterUser true "Payload"
 // @Success 201 {object} string "Created"
 // @Failure 400 {string} string "Bad Request"
 // @Failure 409 {string} string "Resource Conflict"
 // @Failure 500 {string} string "Internal Server Error"
 // @Router /v1/users/register [post]
 func (ctrl *Controller) Register(ctx *gin.Context) {
-	req := pkg.RegisterRequestSchema{}
+	req := entity.RegisterUser{}
 	if err := rest.BindJSON(ctx, &req); err != nil {
 		rest.ResponseError(ctx, http.StatusBadRequest, map[string]string{
 			"body": constant.ErrInvalidFormat.Error()})
@@ -98,6 +98,7 @@ func (ctrl *Controller) Register(ctx *gin.Context) {
 	}
 
 	req.Username = strings.ToLower(req.Username)
+	log.Print(req.Username)
 	err := ctrl.svc.Create(req)
 	if errors.Is(err, constant.ErrUserExist) {
 		rest.ResponseMessage(ctx, http.StatusConflict, errors.Cause(err).Error())
@@ -113,13 +114,13 @@ func (ctrl *Controller) Register(ctx *gin.Context) {
 // @Summary Register User
 // @Description Register User
 // @Tags Users
-// @Param Payload body user.UpdateRequestSchema true "Payload"
+// @Param Payload body user.UpdateUser true "Payload"
 // @Success 200 {string} string "Success"
 // @Failure 400 {string} string "Bad Request"
 // @Failure 500 {string} string "Internal Server Error"
 // @Router /v1/users [patch]
 func (ctrl *Controller) Update(ctx *gin.Context) {
-	request := pkg.UpdateRequestSchema{}
+	request := entity.UpdateUser{}
 	err := rest.BindJSON(ctx, &request)
 	if err != nil {
 		log.Println("bind json:", err, "request:", request)

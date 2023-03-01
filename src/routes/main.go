@@ -10,7 +10,7 @@ import (
 	"go-rest-api/src/connection"
 	"gorm.io/gorm"
 
-	userController "go-rest-api/src/controller/v1"
+	userController "go-rest-api/src/controller/v1/user"
 	userModels "go-rest-api/src/models/v1"
 	userService "go-rest-api/src/service/v1"
 
