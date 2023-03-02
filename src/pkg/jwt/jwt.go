@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/golang-jwt/jwt"
@@ -25,40 +26,39 @@ func GenerateJWT(username string) (string, error) {
 	return tokenString, nil
 }
 
-func validateToken(w http.ResponseWriter, r *http.Request) (err error) {
-	if r.Header["Token"] == nil {
-		fmt.Fprintf(w, "can not find token in header")
-		return errors.New("Token error")
-	}
+func ValidateToken(bearerToken string) (err error) {
+	tokenStr := strings.Replace(bearerToken, "Bearer ", "", -1)
 
-	token, err := jwt.Parse(r.Header["Token"][0], func(token *jwt.Token) (interface{}, error) {
+	token, err := jwt.Parse(tokenStr, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, fmt.Errorf("There was an error in parsing")
+			return nil, fmt.Errorf("there was an error in parsing")
 		}
 		return constant.SampleSecretKey, nil
 	})
+	if err != nil {
+		return err
+	}
 
 	if token == nil {
-		fmt.Fprintf(w, "invalid token")
-		return errors.New("Token error")
+		err = errors.New("token error")
+		return err
 	}
 
 	claims, ok := token.Claims.(jwt.MapClaims)
 	if !ok {
-		fmt.Fprintf(w, "couldn't parse claims")
-		return errors.New("Token error")
+		err = errors.New("invalid JWT Token")
+		return err
 	}
 
 	exp := claims["exp"].(float64)
 	if int64(exp) < time.Now().Local().Unix() {
-		fmt.Fprintf(w, "token expired")
-		return errors.New("Token error")
+		err = errors.New("token expired")
+		return
 	}
-
 	return nil
 }
 
-func generateJWT2(username string) (string, error) {
+func GenerateJWT2(username string) (string, error) {
 	token := jwt.New(jwt.SigningMethodEdDSA)
 	claims := token.Claims.(jwt.MapClaims)
 	claims["authorized"] = true
@@ -74,6 +74,6 @@ func generateJWT2(username string) (string, error) {
  	return tokenString, nil
 }
 
-func verifyJWT(endpointHandler func(writer http.ResponseWriter, request *http.Request)) http.HandlerFunc {
+func VerifyJWT(endpointHandler func(writer http.ResponseWriter, request *http.Request)) http.HandlerFunc {
 	return http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {})
 }

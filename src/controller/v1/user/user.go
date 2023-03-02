@@ -7,9 +7,9 @@ import (
 
 	"go-rest-api/src/constant"
 	entity "go-rest-api/src/http"
+	jwt "go-rest-api/src/pkg/jwt"
 	service "go-rest-api/src/service/v1"
 	"github.com/forkyid/go-utils/v1/aes"
-	"github.com/forkyid/go-utils/v1/jwt"
 	"github.com/forkyid/go-utils/v1/rest"
 	"github.com/forkyid/go-utils/v1/validation"
 	"github.com/gin-gonic/gin"
@@ -36,19 +36,15 @@ func NewController(
 // @Produce application/json
 // @Param Authorization header string true "Bearer Token"
 // @Param user_ids query string false "user_ids separated by comma"
-// @Success 200 {object} user.GetUser
+// @Success 200 {object} http.GetUser
 // @Failure 400 {string} string "Bad Request"
 // @Failure 401 {string} string "Unauthorized"
 // @Failure 500 {string} string "Internal Server Error"
 // @Router /v1/users [get]
 func (ctrl *Controller) Get(ctx *gin.Context) {
-	userID, err := jwt.ExtractClient(ctx.GetHeader("Authorization"))
+	err := jwt.ValidateToken(ctx.GetHeader("Authorization"))
 	if err != nil {
 		rest.ResponseMessage(ctx, http.StatusUnauthorized)
-		return
-	} else if aes.Decrypt(userID.ID) < 0  {
-		rest.ResponseError(ctx, http.StatusBadRequest, map[string]string{
-			"users": constant.ErrInvalidID.Error()})
 		return
 	}
 
@@ -83,7 +79,7 @@ func (ctrl *Controller) Get(ctx *gin.Context) {
 // @Summary Register User
 // @Description Register User
 // @Tags Users
-// @Param Payload body user.RegisterUser true "Payload"
+// @Param Payload body http.RegisterUser true "Payload"
 // @Success 201 {object} string "Created"
 // @Failure 400 {string} string "Bad Request"
 // @Failure 409 {string} string "Resource Conflict"
@@ -113,7 +109,7 @@ func (ctrl *Controller) Register(ctx *gin.Context) {
 // @Summary Register User
 // @Description Register User
 // @Tags Users
-// @Param Payload body user.UpdateUser true "Payload"
+// @Param Payload body http.UpdateUser true "Payload"
 // @Success 200 {string} string "Success"
 // @Failure 400 {string} string "Bad Request"
 // @Failure 500 {string} string "Internal Server Error"
@@ -134,29 +130,32 @@ func (ctrl *Controller) Update(ctx *gin.Context) {
 		return
 	}
 
-	userID, err := jwt.ExtractClient(ctx.GetHeader("Authorization"))
+	err = jwt.ValidateToken(ctx.GetHeader("Authorization"))
 	if err != nil {
 		rest.ResponseMessage(ctx, http.StatusUnauthorized)
 		return
-	} else if aes.Decrypt(userID.ID) < 0  {
-		rest.ResponseError(ctx, http.StatusBadRequest, map[string]string{
-			"user": constant.ErrInvalidID.Error()})
-		return
 	}
 
-	err = ctrl.svc.Update(aes.Decrypt(userID.ID), request)
-	if err != nil {
-		if errors.Is(err, constant.ErrUserNotRegistered) {
-			rest.ResponseError(ctx, http.StatusBadRequest, map[string]string{
-				"users": constant.ErrUserNotRegistered.Error()})
+	userID := ctx.Query("user_ids")
+	if userID == "" {
+		rest.ResponseError(ctx, http.StatusBadRequest, map[string]string{
+			"users": constant.ErrUserNotRegistered.Error()})
+		return
+	} else {
+		err = ctrl.svc.Update(aes.Decrypt(userID), request)
+		if err != nil {
+			if errors.Is(err, constant.ErrUserNotRegistered) {
+				rest.ResponseError(ctx, http.StatusBadRequest, map[string]string{
+					"users": constant.ErrUserNotRegistered.Error()})
+				return
+			}
+			rest.ResponseMessage(ctx, http.StatusInternalServerError)
+			log.Println("update user: ", err.Error())
 			return
 		}
-		rest.ResponseMessage(ctx, http.StatusInternalServerError)
-		log.Println("update user: ", err.Error())
-		return
-	}
 
-	rest.ResponseMessage(ctx, http.StatusOK)
+		rest.ResponseMessage(ctx, http.StatusOK)
+	}
 }
 
 // Delete godoc
@@ -171,19 +170,19 @@ func (ctrl *Controller) Update(ctx *gin.Context) {
 // @Failure 500 {string} string "Internal Server Error"
 // @Router /v1/users [delete]
 func (ctrl *Controller) Delete(ctx *gin.Context) {
-	userID, err := jwt.ExtractClient(ctx.GetHeader("Authorization"))
+	err := jwt.ValidateToken(ctx.GetHeader("Authorization"))
 	if err != nil {
 		rest.ResponseMessage(ctx, http.StatusUnauthorized)
 		return
-	} else if aes.Decrypt(userID.ID) < 0  {
-		rest.ResponseError(ctx, http.StatusBadRequest, map[string]string{
-			"user": constant.ErrInvalidID.Error()})
-		return
 	}
 
-	users := ctx.Query("user_ids")
-	if users != "" {
-		err := ctrl.svc.Delete(aes.Decrypt(userID.ID))
+	userID := ctx.Query("user_ids")
+	if userID == "" {
+		rest.ResponseError(ctx, http.StatusBadRequest, map[string]string{
+			"users": constant.ErrUserNotRegistered.Error()})
+		return
+	} else {
+		err := ctrl.svc.Delete(aes.Decrypt(userID))
 		if err != nil {
 			if errors.Is(err, constant.ErrUserNotRegistered) {
 				rest.ResponseError(ctx, http.StatusBadRequest, map[string]string{

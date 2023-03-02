@@ -5,6 +5,10 @@ type Auth struct {
 	Password  string `json:"password" validate:"required"`
 }
 
+type Token struct {
+	Token string `json:"token"`
+}
+
 type GetUser struct {
 	Username  string `json:"username" validate:"required"`
 	Email     string `json:"email" validate:"required"`

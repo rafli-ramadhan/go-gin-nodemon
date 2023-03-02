@@ -26,17 +26,16 @@ func NewController(
 	}
 }
 
-// @Summary Get Auth
-// @Description Get Auth
+// @Summary User Login
+// @Description User Login
 // @Tags Auth
 // @Produce application/json
-// @Param username query string true "userName"
-// @Param password query string true "password"
-// @Success 200 {object} user.Auth
+// @Param Payload body http.Auth true "Payload"
+// @Success 200 {object} http.Token
 // @Failure 400 {string} string "Bad Request"
 // @Failure 401 {string} string "Unauthorized"
 // @Failure 500 {string} string "Internal Server Error"
-// @Router /v1/auth [get]
+// @Router /v1/auth [post]
 func (ctrl *Controller) Login(ctx *gin.Context) {
 	request := entity.Auth{}
 	err := rest.BindJSON(ctx, &request)
@@ -46,6 +45,8 @@ func (ctrl *Controller) Login(ctx *gin.Context) {
 			"body": constant.ErrInvalidFormat.Error()})
 		return
 	}
+
+	log.Print(request)
 
 	if err := validation.Validator.Struct(request); err != nil {
 		log.Println("validate struct:", err, "request:", request)
@@ -72,7 +73,7 @@ func (ctrl *Controller) Login(ctx *gin.Context) {
 		return
 	}
 
-	rest.ResponseData(ctx, http.StatusOK, map[string]string{
-		"token": fmt.Sprintf("Bearer %v", token),
+	rest.ResponseData(ctx, http.StatusOK, entity.Token{
+		Token: fmt.Sprintf("Bearer %v", token),
 	})
 }
