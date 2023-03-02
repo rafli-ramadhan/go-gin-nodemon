@@ -11,15 +11,15 @@ import (
 type User struct {
 	gorm.Model
 	Username          string    `gorm:"column:username;type:varchar(50)"`
-	FullName          string    `gorm:"column:full_name;type:varchar(150)"`
+	FullName          *string   `gorm:"column:full_name;type:varchar(150)"`
 	Email             string    `gorm:"column:email;type:varchar(150)"`
 	Password          string    `gorm:"column:password;type:varchar(64)"`
-	Country           string    `gorm:"column:country;type:varchar(50)"`
-	PhoneNumber       string    `gorm:"column:phone_number;type:varchar(20)"`
-	Description       string    `gorm:"column:description;type:varchar(80)"`
+	Country           *string   `gorm:"column:country;type:varchar(50)"`
+	PhoneNumber       *string   `gorm:"column:phone_number;type:varchar(20)"`
+	Description       *string   `gorm:"column:description;type:varchar(80)"`
 	Gender            string    `gorm:"column:gender"`
 	DateOfBirth       time.Time `gorm:"column:date_of_birth;type:date"`
-	SignupMethod      string    `gorm:"column:signup_method;type:varchar(5)"`
+	SignupMethod      *string   `gorm:"column:signup_method;type:varchar(5)"`
 	IsVerified        bool      `gorm:"column:is_verified;type:bool"`
 }
 

@@ -47,11 +47,18 @@ func (ctrl *Controller) Get(ctx *gin.Context) {
 		return
 	}
 
-	userID := ctx.Query("user_id")
+	// example query : a5V7Wz49nlPgbKEqVJkMQLpm3dyO6Zq2,3ZmaNeMwQ2X4oAE1RJ6ObLvkrVPxB9G5 (without spacing)
 	log.Print(aes.Encrypt(1))
-	log.Print(aes.Encrypt(2))
-	if userID != "" {
-		response, err := ctrl.svc.Take(aes.Decrypt(userID))
+	log.Print(aes.Encrypt(9))
+	userIDs := ctx.Query("user_ids")
+	if userIDs != "" {
+		userIDs, err := aes.DecryptBulk(strings.Split(userIDs, ","))
+		if err != nil {
+			rest.ResponseError(ctx, http.StatusBadRequest, map[string]string{
+				"user_ids": constant.ErrInvalidID.Error()})
+			return
+		}
+		response, err := ctrl.svc.Find(userIDs)
 		if err != nil {
 			rest.ResponseMessage(ctx, http.StatusInternalServerError)
 			log.Println("get user by id:", err)

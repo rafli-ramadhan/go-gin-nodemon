@@ -1,7 +1,8 @@
 package user
 
 import (
-	"log"
+	// "log"
+	"github.com/forkyid/go-utils/v1/aes"
 	"github.com/jinzhu/copier"
 	"github.com/pkg/errors"
 	"go-rest-api/src/constant"
@@ -42,6 +43,7 @@ func (svc *Service) Take(userID int) (user http.GetUser, err error) {
 
 	user = http.GetUser{}
 	copier.Copy(&user, &takeUser)
+	user.ID = aes.Encrypt(int(takeUser.ID))
 	return
 }
 
@@ -58,6 +60,7 @@ func (svc *Service) Find(userIDs []int) (users []http.GetUser, err error) {
 	for i := range findUsers {
 		user := http.GetUser{}
 		copier.Copy(&user, &findUsers[i])
+		user.ID = aes.Encrypt(int(findUsers[i].ID))
 		users = append(users, user)
 	} 
 	return
@@ -84,14 +87,12 @@ func (svc *Service) Create(request http.RegisterUser) (err error) {
 	if err != nil {
 		return
 	}
-	log.Print(exist)
-	log.Print(request)
 	
 	if !exist {
 		newUser := dbentity.User{}
 		copier.Copy(&newUser, &request)
-		log.Print("newUser : ", newUser)
 		newUser.IsVerified = false
+
 		err = svc.model.Create(newUser)
 		if err != nil {
 			err = errors.Wrap(err, "create")
