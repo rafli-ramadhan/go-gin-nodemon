@@ -7,8 +7,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/golang-jwt/jwt"
 	"go-rest-api/src/constant"
+
+	"github.com/golang-jwt/jwt"
 )
 
 func GenerateJWT(username string) (string, error) {
@@ -16,7 +17,7 @@ func GenerateJWT(username string) (string, error) {
 	claims := token.Claims.(jwt.MapClaims)
 	claims["authorized"] = true
 	claims["username"] = username
-	claims["exp"] = time.Now().Add(time.Minute * 1).Unix()
+	claims["exp"] = time.Now().Add(time.Minute * 30).Unix()
 
 	tokenString, err := token.SignedString(constant.SampleSecretKey)
 	if err != nil {
@@ -64,14 +65,14 @@ func GenerateJWT2(username string) (string, error) {
 	claims["authorized"] = true
 	claims["user"] = username
 	claims["exp"] = time.Now().Add(10 * time.Minute)
-	
+
 	tokenString, err := token.SignedString(constant.SampleSecretKey)
 	if err != nil {
 		fmt.Errorf("Something Went Wrong: %s", err.Error())
 		return "", err
 	}
 
- 	return tokenString, nil
+	return tokenString, nil
 }
 
 func VerifyJWT(endpointHandler func(writer http.ResponseWriter, request *http.Request)) http.HandlerFunc {

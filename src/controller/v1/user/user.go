@@ -6,14 +6,13 @@ import (
 	"net/http"
 
 	"go-rest-api/src/constant"
+	"go-rest-api/src/pkg/jwt"
 	entity "go-rest-api/src/http"
-	jwt "go-rest-api/src/pkg/jwt"
 	service "go-rest-api/src/service/v1"
 	"github.com/forkyid/go-utils/v1/aes"
 	"github.com/forkyid/go-utils/v1/rest"
 	"github.com/forkyid/go-utils/v1/validation"
 	"github.com/gin-gonic/gin"
-	"github.com/jinzhu/copier"
 	"github.com/pkg/errors"
 )
 
@@ -48,29 +47,17 @@ func (ctrl *Controller) Get(ctx *gin.Context) {
 		return
 	}
 
-	users := ctx.Query("user_ids")
-	if users != "" {
-		result := []entity.GetUser{}
-		userIDs, err := aes.DecryptBulk(strings.Split(users, ","))
-		if err != nil {
-			rest.ResponseError(ctx, http.StatusBadRequest, map[string]string{
-				"user_ids": constant.ErrInvalidID.Error()})
-			return
-		}
-
-		usersData, err := ctrl.svc.Find(userIDs)
+	userID := ctx.Query("user_id")
+	log.Print(aes.Encrypt(1))
+	log.Print(aes.Encrypt(2))
+	if userID != "" {
+		response, err := ctrl.svc.Take(aes.Decrypt(userID))
 		if err != nil {
 			rest.ResponseMessage(ctx, http.StatusInternalServerError)
 			log.Println("get user by id:", err)
 			return
 		}
-
-		for i := range usersData {
-			response := entity.GetUser{}
-			err = errors.Wrap(copier.Copy(&response, &usersData[i]), "copy user data to response")
-			result = append(result, response)
-		}
-		rest.ResponseData(ctx, http.StatusOK, result)
+		rest.ResponseData(ctx, http.StatusOK, response)
 		return
 	}
 }

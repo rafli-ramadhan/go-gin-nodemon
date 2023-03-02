@@ -24,25 +24,43 @@ func NewService(
 }
 
 type Servicer interface {
-	Take(userID int) (users dbentity.User, err error)
-	TakeUserByEmail(email string) (users dbentity.User, err error)
-	Find(userIDs []int) (users []dbentity.User, err error)
+	Take(userID int) (users http.GetUser, err error)
+	TakeUserByEmail(email string) (user dbentity.User, err error)
+	Find(userIDs []int) (users []http.GetUser, err error)
 	CheckEmailExist(email string) (exist bool, err error)
 	Create(request http.RegisterUser) (err error)
 	Update(userID int, request http.UpdateUser) (err error)
 	Delete(userID int) (err error)
 }
 
-func (svc *Service) Take(userID int) (users dbentity.User, err error) {
-	return svc.model.Take(userID)
+func (svc *Service) Take(userID int) (user http.GetUser, err error) {
+	takeUser, err := svc.model.Take(userID)
+	if err != nil {
+		err = errors.Wrap(err, "take users")
+		return
+	}
+
+	user = http.GetUser{}
+	copier.Copy(&user, &takeUser)
+	return
 }
 
 func (svc *Service) TakeUserByEmail(email string) (users dbentity.User, err error) {
 	return svc.model.TakeUserByEmail(email)
 }
 
-func (svc *Service) Find(userIDs []int) (users []dbentity.User, err error) {
-	return svc.model.Find(userIDs)
+func (svc *Service) Find(userIDs []int) (users []http.GetUser, err error) {
+	findUsers, err := svc.model.Find(userIDs)
+	if err != nil {
+		err = errors.Wrap(err, "find users")
+		return
+	}
+	for i := range findUsers {
+		user := http.GetUser{}
+		copier.Copy(&user, &findUsers[i])
+		users = append(users, user)
+	} 
+	return
 }
 
 func (svc *Service) CheckEmailExist(email string) (exist bool, err error) {

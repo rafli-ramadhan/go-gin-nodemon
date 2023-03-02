@@ -36,8 +36,8 @@ type Repositorier interface {
 
 func (repo *Repository) Take(userID int) (user dbentity.User, err error) {
 	query := repo.dbMaster.Model(&dbentity.User{}).
-		Select("id", "username", "nickname", "email", "used_storage", "status").
-		Take(&user, userID)
+		Where("id", userID).
+		Take(&user, user)
 	err = query.Error
 	return
 }
@@ -53,7 +53,7 @@ func (repo *Repository) TakeUserByEmail(email string) (user dbentity.User, err e
 
 func (repo *Repository) Find(userIDs []int) (users []dbentity.User, err error) {
 	query := repo.dbMaster.Model(&dbentity.User{}).
-		Select("id", "username", "nickname", "email", "used_storage", "status").
+		Select("id", "username", "email").
 		Find(&users, userIDs)
 	err = query.Error
 	return
