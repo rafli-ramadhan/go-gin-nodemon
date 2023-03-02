@@ -1,8 +1,8 @@
 package http
 
 type Auth struct {
-	Username string `valid:"Required; MaxSize(50)"`
-	Password string `valid:"Required; MaxSize(50)"`
+	Email     string `json:"email" validate:"required"`
+	Password  string `json:"password" validate:"required"`
 }
 
 type GetUser struct {

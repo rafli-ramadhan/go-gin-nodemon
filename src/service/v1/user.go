@@ -25,8 +25,8 @@ func NewService(
 
 type Servicer interface {
 	Take(userID int) (users dbentity.User, err error)
+	TakeUserByEmail(email string) (users dbentity.User, err error)
 	Find(userIDs []int) (users []dbentity.User, err error)
-	CheckUsernameExist(email string) (exist bool, err error)
 	CheckEmailExist(email string) (exist bool, err error)
 	Create(request http.RegisterUser) (err error)
 	Update(userID int, request http.UpdateUser) (err error)
@@ -35,6 +35,10 @@ type Servicer interface {
 
 func (svc *Service) Take(userID int) (users dbentity.User, err error) {
 	return svc.model.Take(userID)
+}
+
+func (svc *Service) TakeUserByEmail(email string) (users dbentity.User, err error) {
+	return svc.model.TakeUserByEmail(email)
 }
 
 func (svc *Service) Find(userIDs []int) (users []dbentity.User, err error) {
@@ -54,20 +58,6 @@ func (svc *Service) CheckEmailExist(email string) (exist bool, err error) {
 		}
 	}
 	exist = true
-	return
-}
-
-func (svc *Service) CheckUsernameExist(email string) (exist bool, err error) {
-	exist = false
-	_, err = svc.model.TakeUserByUsername(email)
-	if err != nil {
-		if err == gorm.ErrRecordNotFound {
-			exist = true
-			err = nil
-			return
-		}
-		err = errors.Wrap(err, "check username exist")
-	}
 	return
 }
 

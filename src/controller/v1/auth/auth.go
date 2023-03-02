@@ -1,13 +1,14 @@
 package auth
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 
 	"go-rest-api/src/constant"
 	entity "go-rest-api/src/http"
 	service "go-rest-api/src/service/v1"
-	"go-rest-api/src/pkg/utils"
+	"go-rest-api/src/pkg/jwt"
 	"github.com/forkyid/go-utils/v1/rest"
 	"github.com/forkyid/go-utils/v1/validation"
 	"github.com/gin-gonic/gin"
@@ -36,7 +37,7 @@ func NewController(
 // @Failure 401 {string} string "Unauthorized"
 // @Failure 500 {string} string "Internal Server Error"
 // @Router /v1/auth [get]
-func (ctrl *Controller) GetAuth(ctx *gin.Context) {
+func (ctrl *Controller) Login(ctx *gin.Context) {
 	request := entity.Auth{}
 	err := rest.BindJSON(ctx, &request)
 	if err != nil {
@@ -52,20 +53,26 @@ func (ctrl *Controller) GetAuth(ctx *gin.Context) {
 		return
 	}
 
-	exist, _ := ctrl.svc.CheckUsernameExist(request.Username)
+	exist, _ := ctrl.svc.CheckEmailExist(request.Email)
 	if !exist {
 		rest.ResponseError(ctx, http.StatusBadRequest, map[string]string{
 			"users": constant.ErrUserNotRegistered.Error()})
 		return
 	}
 
-	token, err := utils.generateJWT(request.Username)
+	user, err:= ctrl.svc.TakeUserByEmail(request.Email)
 	if err != nil {
-		rest.Response(ctx, http.StatusInternalServerError)
+		rest.ResponseMessage(ctx, http.StatusInternalServerError)
+		return
+	}
+
+	token, err := jwt.GenerateJWT(user.Username)
+	if err != nil {
+		rest.ResponseMessage(ctx, http.StatusInternalServerError)
 		return
 	}
 
 	rest.ResponseData(ctx, http.StatusOK, map[string]string{
-		"token": token,
+		"token": fmt.Sprintf("Bearer %v", token),
 	})
 }

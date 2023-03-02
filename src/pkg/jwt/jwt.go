@@ -1,4 +1,4 @@
-package utlis
+package jwt
 
 import (
 	"errors"
@@ -10,7 +10,7 @@ import (
 	"go-rest-api/src/constant"
 )
 
-func generateJWT(username string) (string, error) {
+func GenerateJWT(username string) (string, error) {
 	token := jwt.New(jwt.SigningMethodHS256)
 	claims := token.Claims.(jwt.MapClaims)
 	claims["authorized"] = true
@@ -56,4 +56,24 @@ func validateToken(w http.ResponseWriter, r *http.Request) (err error) {
 	}
 
 	return nil
+}
+
+func generateJWT2(username string) (string, error) {
+	token := jwt.New(jwt.SigningMethodEdDSA)
+	claims := token.Claims.(jwt.MapClaims)
+	claims["authorized"] = true
+	claims["user"] = username
+	claims["exp"] = time.Now().Add(10 * time.Minute)
+	
+	tokenString, err := token.SignedString(constant.SampleSecretKey)
+	if err != nil {
+		fmt.Errorf("Something Went Wrong: %s", err.Error())
+		return "", err
+	}
+
+ 	return tokenString, nil
+}
+
+func verifyJWT(endpointHandler func(writer http.ResponseWriter, request *http.Request)) http.HandlerFunc {
+	return http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {})
 }
