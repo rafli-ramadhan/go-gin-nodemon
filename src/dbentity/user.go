@@ -19,7 +19,7 @@ type User struct {
 	Description       *string   `gorm:"column:description;type:varchar(80)"`
 	Gender            string    `gorm:"column:gender"`
 	DateOfBirth       time.Time `gorm:"column:date_of_birth;type:date"`
-	SignupMethod      *string   `gorm:"column:signup_method;type:varchar(5)"`
+	SignupMethod      string   `gorm:"column:signup_method;type:varchar(5)"`
 	IsVerified        bool      `gorm:"column:is_verified;type:bool"`
 }
 

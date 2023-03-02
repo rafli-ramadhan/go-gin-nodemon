@@ -49,9 +49,13 @@ func (ctrl *Controller) Get(ctx *gin.Context) {
 
 	// example query : a5V7Wz49nlPgbKEqVJkMQLpm3dyO6Zq2,3ZmaNeMwQ2X4oAE1RJ6ObLvkrVPxB9G5 (without spacing)
 	log.Print(aes.Encrypt(1))
-	log.Print(aes.Encrypt(9))
+	log.Print(aes.Encrypt(14))
 	userIDs := ctx.Query("user_ids")
-	if userIDs != "" {
+	if userIDs == "" {
+		rest.ResponseError(ctx, http.StatusBadRequest, map[string]string{
+			"user_ids": constant.ErrInvalidID.Error()})
+		return
+	} else {
 		userIDs, err := aes.DecryptBulk(strings.Split(userIDs, ","))
 		if err != nil {
 			rest.ResponseError(ctx, http.StatusBadRequest, map[string]string{
@@ -133,7 +137,7 @@ func (ctrl *Controller) Update(ctx *gin.Context) {
 	userID := ctx.Query("user_ids")
 	if userID == "" {
 		rest.ResponseError(ctx, http.StatusBadRequest, map[string]string{
-			"users": constant.ErrUserNotRegistered.Error()})
+			"user_id": constant.ErrInvalidID.Error()})
 		return
 	} else {
 		err = ctrl.svc.Update(aes.Decrypt(userID), request)
@@ -157,7 +161,7 @@ func (ctrl *Controller) Update(ctx *gin.Context) {
 // @Description Delete User
 // @Tags Users
 // @Param Authorization header string true "Bearer Token"
-// @Param user_ids query string false "user_ids separated by comma"
+// @Param user_id query string false "user_id separated by comma "
 // @Success 200 {string} string "Success"
 // @Failure 400 {string} string "Bad Request"
 // @Failure 409 {string} string "Resource Conflict"
@@ -170,13 +174,16 @@ func (ctrl *Controller) Delete(ctx *gin.Context) {
 		return
 	}
 
-	userID := ctx.Query("user_ids")
+	// example query : a5V7Wz49nlPgbKEqVJkMQLpm3dyO6Zq2,3ZmaNeMwQ2X4oAE1RJ6ObLvkrVPxB9G5 (without spacing)
+	log.Print(aes.Encrypt(1))
+	log.Print(aes.Encrypt(14))
+	userID := ctx.Query("user_id")
 	if userID == "" {
 		rest.ResponseError(ctx, http.StatusBadRequest, map[string]string{
-			"users": constant.ErrUserNotRegistered.Error()})
+			"user_id": constant.ErrInvalidID.Error()})
 		return
 	} else {
-		err := ctrl.svc.Delete(aes.Decrypt(userID))
+		err = ctrl.svc.Delete(aes.Decrypt(userID))
 		if err != nil {
 			if errors.Is(err, constant.ErrUserNotRegistered) {
 				rest.ResponseError(ctx, http.StatusBadRequest, map[string]string{

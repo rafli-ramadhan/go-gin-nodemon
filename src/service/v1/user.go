@@ -36,8 +36,11 @@ type Servicer interface {
 
 func (svc *Service) Take(userID int) (user http.GetUser, err error) {
 	takeUser, err := svc.model.Take(userID)
-	if err != nil {
-		err = errors.Wrap(err, "take users")
+	if err == gorm.ErrRecordNotFound {
+		err = constant.ErrUserNotRegistered
+		return
+	} else if err != nil {
+		err = errors.Wrap(err, "take user")
 		return
 	}
 
@@ -122,18 +125,15 @@ func (svc *Service) Update(userID int, request http.UpdateUser) (err error) {
 
 func (svc *Service) Delete(userID int) (err error) {
 	_, err = svc.Take(userID)
-	if err == gorm.ErrRecordNotFound {
-		err = constant.ErrUserNotRegistered
+	if err != nil {
+		err = errors.Wrap(err, "delete user: user is not exist")
 		return
-	} else if err != nil {
-		err = errors.Wrap(err, "user is not exist")
+	}
+
+	err = svc.model.Delete(userID)
+	if err != nil {
+		err = errors.Wrap(err, "delete user")
 		return
-	} else if err == nil {
-		err = svc.model.Delete(userID)
-		if err != nil {
-			err = errors.Wrap(err, "delete user")
-			return
-		}
 	}
 	return
 }

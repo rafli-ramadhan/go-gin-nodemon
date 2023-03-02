@@ -78,7 +78,7 @@ func (repo *Repository) Create(user dbentity.User) (err error) {
 func (repo *Repository) Update(userID int, request http.UpdateUser) (err error) {
 	user := &dbentity.User{}
 	query := repo.dbMaster.Model(&user).Begin().
-		Where("id IN ?", userID).
+		Where("id", userID).
 		Updates(request)
 	err = query.Error
 	if err != nil {
@@ -94,7 +94,7 @@ func (repo *Repository) Update(userID int, request http.UpdateUser) (err error) 
 func (repo *Repository) Delete(userID int) (err error) {
 	user := &dbentity.User{}
 	query := repo.dbMaster.Model(user).Begin().
-		Where("id IN ?", userID).
+		Where("id", userID).
 		Delete(user)
 	err = query.Error
 	if err != nil {
