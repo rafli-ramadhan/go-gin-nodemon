@@ -98,7 +98,6 @@ func (ctrl *Controller) Register(ctx *gin.Context) {
 	}
 
 	req.Username = strings.ToLower(req.Username)
-	log.Print(req.Username)
 	err := ctrl.svc.Create(req)
 	if errors.Is(err, constant.ErrUserExist) {
 		rest.ResponseMessage(ctx, http.StatusConflict, errors.Cause(err).Error())

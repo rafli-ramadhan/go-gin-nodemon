@@ -2,10 +2,12 @@ package user
 
 import (
 	"log"
+	"github.com/jinzhu/copier"
+	"github.com/pkg/errors"
 	"go-rest-api/src/constant"
 	models "go-rest-api/src/models/v1"
+	"go-rest-api/src/dbentity"
 	"go-rest-api/src/http"
-	"github.com/pkg/errors"
 	"gorm.io/gorm"
 )
 
@@ -22,8 +24,8 @@ func NewService(
 }
 
 type Servicer interface {
-	Take(userID int) (users models.User, err error)
-	Find(userIDs []int) (users []models.User, err error)
+	Take(userID int) (users dbentity.User, err error)
+	Find(userIDs []int) (users []dbentity.User, err error)
 	CheckUsernameExist(email string) (exist bool, err error)
 	CheckEmailExist(email string) (exist bool, err error)
 	Create(request http.RegisterUser) (err error)
@@ -31,11 +33,11 @@ type Servicer interface {
 	Delete(userID int) (err error)
 }
 
-func (svc *Service) Take(userID int) (users models.User, err error) {
+func (svc *Service) Take(userID int) (users dbentity.User, err error) {
 	return svc.model.Take(userID)
 }
 
-func (svc *Service) Find(userIDs []int) (users []models.User, err error) {
+func (svc *Service) Find(userIDs []int) (users []dbentity.User, err error) {
 	return svc.model.Find(userIDs)
 }
 
@@ -75,9 +77,14 @@ func (svc *Service) Create(request http.RegisterUser) (err error) {
 		return
 	}
 	log.Print(exist)
+	log.Print(request)
 	
 	if !exist {
-		err = svc.model.Create(request)
+		newUser := dbentity.User{}
+		copier.Copy(&newUser, &request)
+		log.Print("newUser : ", newUser)
+		newUser.IsVerified = false
+		err = svc.model.Create(newUser)
 		if err != nil {
 			err = errors.Wrap(err, "create")
 			return
